@@ -1,0 +1,41 @@
+name: Scrape Auctions
+
+on:
+  schedule:
+    # Runs Thu, Fri, Sat at 2am Pacific (10:00 UTC)
+    - cron: '0 10 * * 4'  # Thursday
+    - cron: '0 10 * * 5'  # Friday
+    - cron: '0 10 * * 6'  # Saturday
+  workflow_dispatch:  # allows manual run from GitHub Actions tab
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright anthropic
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run scraper
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scraper.py
+
+      - name: Commit and push updated data.json
+        run: |
+          git config user.name "Auction Bot"
+          git config user.email "bot@github.com"
+          git add data.json
+          git diff --cached --quiet || git commit -m "Auto-update: auction data $(date +'%Y-%m-%d')"
+          git push
