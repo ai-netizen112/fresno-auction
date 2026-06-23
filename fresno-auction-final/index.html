@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fresno Auctions 🏷️</title>
+<style>
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#263347;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#f59e0b;--steal:#10b981;--radius:10px;--font:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:100}
+.header-inner{max-width:1300px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-0.02em;white-space:nowrap}
+.logo span{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+.last-updated{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.refresh-btn{background:var(--accent);color:#1e293b;border:none;padding:8px 16px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer}
+.refresh-btn:hover{opacity:.85}
+.controls{max-width:1300px;margin:16px auto 0;padding:0 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1 1 240px}
+.search-wrap input{width:100%;padding:9px 12px 9px 36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+.search-wrap input:focus{border-color:var(--accent)}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
+select{padding:9px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);cursor:pointer;outline:none}
+select:focus{border-color:var(--accent)}
+.tbtn{padding:9px 13px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tbtn.active{background:var(--accent);color:#1e293b;border-color:var(--accent)}
+.stats-bar{max-width:1300px;margin:12px auto 0;padding:0 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:12px;color:var(--muted)}
+.chip strong{color:var(--text)}
+.steal-chip{background:rgba(16,185,129,.15);border:1px solid var(--steal);border-radius:6px;padding:5px 11px;font-size:12px;color:var(--steal);font-weight:700;cursor:pointer}
+.steal-chip.active{background:var(--steal);color:#fff}
+.tabs-wrap{max-width:1300px;margin:14px auto 0;padding:0 20px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-bottom:3px solid transparent;color:var(--muted);white-space:nowrap;background:none;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .cnt{display:inline-block;background:var(--surface2);color:var(--muted);border-radius:10px;padding:1px 6px;font-size:11px;margin-left:4px}
+.tab.active .cnt{background:rgba(245,158,11,.15);color:var(--accent)}
+.view-controls{max-width:1300px;margin:10px auto 0;padding:0 20px;display:flex;justify-content:flex-end;gap:6px}
+.vbtn{padding:6px 11px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:17px;cursor:pointer}
+.vbtn.active{border-color:var(--accent);color:var(--accent)}
+.main{max-width:1300px;margin:0 auto;padding:14px 20px 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
+.list{display:flex;flex-direction:column;gap:8px}
+/* CARD */
+.lot-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .12s;text-decoration:none;display:flex;flex-direction:column;color:var(--text)}
+.lot-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);border-color:#4b6080}
+.lot-card.steal{border-color:var(--steal);box-shadow:0 0 0 1px var(--steal)}
+.card-img{width:100%;height:150px;object-fit:cover;background:var(--surface2);display:block}
+.card-img-ph{width:100%;height:90px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--border)}
+.card-body{padding:11px 13px 13px;flex:1;display:flex;flex-direction:column;gap:6px}
+.card-src{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.card-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.card-raw{font-size:10px;color:var(--muted);line-height:1.25;font-style:italic}
+.card-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px}
+.b-bid{background:rgba(245,158,11,.15);color:var(--accent)}
+.b-nobid{background:rgba(16,185,129,.15);color:var(--steal)}
+.b-steal{background:var(--steal);color:#fff}
+.b-cat{background:var(--surface2);color:var(--muted)}
+.card-closing{font-size:12px;font-weight:600;color:var(--accent);margin-top:1px}
+.card-loc{font-size:11px;color:var(--muted)}
+.card-footer{margin-top:auto;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+/* ROW */
+.lot-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;text-decoration:none;color:var(--text);transition:background .12s}
+.lot-row:hover{background:var(--surface2)}
+.lot-row.steal{border-color:var(--steal)}
+.row-img{width:58px;height:58px;object-fit:cover;border-radius:6px;background:var(--surface2);flex-shrink:0}
+.row-img-ph{width:58px;height:58px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.row-body{flex:1;min-width:0}
+.row-title{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-raw{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
+.row-meta{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.row-right{text-align:right;flex-shrink:0;min-width:90px}
+.row-bid{font-size:15px;font-weight:800;color:var(--accent)}
+.row-closing{font-size:11px;color:var(--accent);font-weight:600}
+.row-src{font-size:10px;color:var(--muted);margin-top:2px}
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;gap:10px;margin:18px 0 10px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:70px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty h2{font-size:17px;color:var(--text);margin-bottom:6px}
+.empty p{font-size:13px;line-height:1.6}
+.empty a{color:var(--accent)}
+.loading{text-align:center;padding:60px;color:var(--muted);font-size:14px}
+.spinner{font-size:30px;animation:spin 1s linear infinite;display:block;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.logo span{display:none}.grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}.card-img{height:110px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo">🏷️ Fresno Auctions <span>Within 30 miles · HiBid</span></div>
+    <div class="last-updated" id="lastUpdated">Loading...</div>
+    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="si">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search anything — nailer, couch, TV, drill..." oninput="applyFilters()">
+  </div>
+  <select id="categoryFilter" onchange="applyFilters()">
+    <option value="">All Categories</option>
+    <option>Tools & Hardware</option><option>Electronics</option><option>Furniture</option>
+    <option>Appliances</option><option>Home Goods & Decor</option><option>Clothing & Accessories</option>
+    <option>Toys & Games</option><option>Jewelry & Watches</option><option>Outdoor & Garden</option>
+    <option>Sports & Fitness</option><option>Automotive</option><option>Books & Media</option>
+    <option>Art & Collectibles</option><option>Collectibles</option><option>Other</option>
+  </select>
+  <select id="sortFilter" onchange="applyFilters()">
+    <option value="closing">Closing Soonest</option>
+    <option value="newest">Newest Listings</option>
+    <option value="bid_asc">Lowest Bid</option>
+    <option value="bid_desc">Highest Bid</option>
+  </select>
+  <button class="tbtn" id="milesBtn" onclick="toggleMiles()">📍 Near Me First</button>
+</div>
+
+<div class="stats-bar">
+  <div class="chip" id="statTotal"><strong>—</strong> lots</div>
+  <div class="chip" id="statShowing"><strong>—</strong> showing</div>
+  <div class="chip" id="statSources"><strong>—</strong> auctions</div>
+  <div class="steal-chip" id="stealToggle" onclick="toggleSteals()">🔥 <span id="stealCount">—</span> Steals</div>
+</div>
+
+<div class="tabs-wrap"><div class="tabs" id="tabsContainer"></div></div>
+
+<div class="view-controls">
+  <button class="vbtn active" id="btnGrid" onclick="setView('grid')" title="Grid">▦</button>
+  <button class="vbtn" id="btnList" onclick="setView('list')" title="List">☰</button>
+</div>
+
+<div class="main" id="mainContent">
+  <div class="loading"><span class="spinner">⏳</span>Loading auction data...</div>
+</div>
+
+<script>
+let allLots=[], sources=[], activeTab='all', viewMode='grid', showSteals=false, sortByMiles=false;
+
+async function loadData(){
+  try{
+    const res=await fetch(`data.json?t=${Date.now()}`);
+    if(!res.ok) throw new Error('not found');
+    const data=await res.json();
+    allLots=data.lots||[];
+    sources=data.sources||[];
+    document.getElementById('lastUpdated').textContent=`Updated: ${data.lastUpdatedLocal||'Unknown'}`;
+    document.getElementById('statTotal').innerHTML=`<strong>${allLots.length}</strong> lots`;
+    document.getElementById('statSources').innerHTML=`<strong>${sources.length}</strong> auctions`;
+    document.getElementById('stealCount').textContent=allLots.filter(l=>l.isSteal).length;
+    buildTabs(); applyFilters();
+  } catch(e){
+    document.getElementById('mainContent').innerHTML=`<div class="empty"><div class="empty-icon">📭</div><h2>No data yet</h2><p>Run the scraper to populate this dashboard.<br><a href="https://hibid.com/auctions?zip=93711&miles=30" target="_blank">Browse HiBid directly →</a></p></div>`;
+    document.getElementById('lastUpdated').textContent='No data';
+  }
+}
+
+function buildTabs(){
+  const tabs=[{id:'all',name:'All Auctions',color:'#f59e0b'},...sources];
+  document.getElementById('tabsContainer').innerHTML=tabs.map(s=>{
+    const count=s.id==='all'?allLots.length:allLots.filter(l=>l.sourceId===s.id).length;
+    const active=s.id===activeTab;
+    return `<button class="tab ${active?'active':''}" onclick="setTab('${s.id}')"
+      style="${active?`border-bottom-color:${s.color};color:${s.color}`:''}">
+      ${esc(s.name)} <span class="cnt">${count}</span></button>`;
+  }).join('');
+}
+
+function setTab(id){activeTab=id;buildTabs();applyFilters();}
+
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const cat=document.getElementById('categoryFilter').value;
+  const sort=document.getElementById('sortFilter').value;
+  let f=[...allLots];
+  if(activeTab!=='all') f=f.filter(l=>l.sourceId===activeTab);
+  if(showSteals) f=f.filter(l=>l.isSteal);
+  if(cat) f=f.filter(l=>l.category===cat);
+  if(q){
+    f=f.filter(l=>{
+      const h=[l.normalizedTitle,l.rawTitle,l.title,l.description,l.category,...(l.tags||[])].join(' ').toLowerCase();
+      return q.split(' ').every(w=>h.includes(w));
+    });
+  }
+  if(sortByMiles){
+    f.sort((a,b)=>(a.miles||999)-(b.miles||999));
+  } else {
+    f.sort((a,b)=>{
+      if(sort==='bid_asc') return (a.currentBid||0)-(b.currentBid||0);
+      if(sort==='bid_desc') return (b.currentBid||0)-(a.currentBid||0);
+      if(sort==='newest') return new Date(b.scrapedAt||0)-new Date(a.scrapedAt||0);
+      // closing: try to parse, put unknown at end
+      const ta=parseClose(a.closingTime), tb=parseClose(b.closingTime);
+      if(!ta) return 1; if(!tb) return -1; return ta-tb;
+    });
+  }
+  document.getElementById('statShowing').innerHTML=`<strong>${f.length}</strong> showing`;
+  renderLots(f);
+}
+
+function parseClose(str){
+  if(!str) return null;
+  // Handle "2d 13h 41m" countdown format — convert to future timestamp
+  const countdown=str.match(/(\d+)d\s+(\d+)h\s+(\d+)m/);
+  if(countdown){
+    const ms=(+countdown[1]*86400 + +countdown[2]*3600 + +countdown[3]*60)*1000;
+    return new Date(Date.now()+ms);
+  }
+  const d=new Date(str);
+  return isNaN(d)?null:d;
+}
+
+function toggleSteals(){showSteals=!showSteals;document.getElementById('stealToggle').classList.toggle('active',showSteals);applyFilters();}
+function toggleMiles(){sortByMiles=!sortByMiles;document.getElementById('milesBtn').classList.toggle('active',sortByMiles);applyFilters();}
+function setView(m){viewMode=m;document.getElementById('btnGrid').classList.toggle('active',m==='grid');document.getElementById('btnList').classList.toggle('active',m==='list');applyFilters();}
+
+function renderLots(lots){
+  const main=document.getElementById('mainContent');
+  if(!lots.length){main.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><h2>No lots match</h2><p>Try different search terms or clear filters.</p></div>`;return;}
+  if(viewMode==='grid'){
+    main.innerHTML=`<div class="grid">${lots.map(renderCard).join('')}</div>`;
+  } else {
+    if(activeTab==='all'){
+      const grp={};
+      lots.forEach(l=>{const k=l.sourceName||'Unknown';if(!grp[k])grp[k]={lots:[],color:l.sourceColor};grp[k].lots.push(l);});
+      let html='';
+      for(const[name,g] of Object.entries(grp)){
+        html+=`<div class="sec-hdr"><span class="dot" style="background:${g.color}"></span>${name} (${g.lots.length})</div><div class="list">${g.lots.map(renderRow).join('')}</div>`;
+      }
+      main.innerHTML=html;
+    } else {
+      main.innerHTML=`<div class="list">${lots.map(renderRow).join('')}</div>`;
+    }
+  }
+}
+
+function bidBadge(lot){
+  if(lot.isSteal) return `<span class="badge b-steal">🔥 STEAL</span>`;
+  if(lot.currentBid===0) return `<span class="badge b-nobid">No bids</span>`;
+  return `<span class="badge b-bid">$${lot.currentBid.toFixed(2)}</span>`;
+}
+
+function closingDisplay(lot){
+  if(!lot.closingTime) return '';
+  // Show countdown if in "Xd Yh Zm" format, else show the date/time
+  return `<div class="card-closing">⏱️ ${esc(lot.closingTime)}</div>`;
+}
+
+function renderCard(lot){
+  const showRaw=lot.normalizedTitle&&lot.normalizedTitle!==lot.rawTitle&&lot.rawTitle;
+  const img=lot.imageUrl?`<img class="card-img" src="${esc(lot.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''
+  const ph=`<div class="card-img-ph" style="${lot.imageUrl?'display:none':''}">📦</div>`;
+  return `<a class="lot-card ${lot.isSteal?'steal':''}" href="${esc(lot.url||'#')}" target="_blank" rel="noopener">
+    ${img}${ph}
+    <div class="card-body">
+      <div class="card-src">
+        <span class="dot" style="background:${lot.sourceColor||'#888'}"></span>
+        <span style="color:${lot.sourceColor||'#888'}">${esc(lot.sourceName||'')}</span>
+        ${lot.miles!=null?`<span style="color:var(--border);margin-left:auto;font-size:10px">${lot.miles}mi</span>`:''}
+      </div>
+      <div class="card-title">${esc(lot.normalizedTitle||lot.rawTitle||lot.title||'Unknown Item')}</div>
+      ${showRaw?`<div class="card-raw">${esc(lot.rawTitle)}</div>`:''}
+      <div class="card-meta">${bidBadge(lot)}${lot.category?`<span class="badge b-cat">${esc(lot.category)}</span>`:''}</div>
+      ${closingDisplay(lot)}
+      ${lot.pickup?`<div class="card-loc">📍 ${esc(lot.location||'')} · ${esc(lot.pickup)}</div>`:''}
+      <div class="card-footer">↗ View &amp; Bid on HiBid</div>
+    </div>
+  </a>`;
+}
+
+function renderRow(lot){
+  const showRaw=lot.normalizedTitle&&lot.normalizedTitle!==lot.rawTitle&&lot.rawTitle;
+  const img=lot.imageUrl
+    ?`<img class="row-img" src="${esc(lot.imageUrl)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'row-img-ph\\'>📦</div>'">`
+    :`<div class="row-img-ph">📦</div>`;
+  return `<a class="lot-row ${lot.isSteal?'steal':''}" href="${esc(lot.url||'#')}" target="_blank" rel="noopener">
+    ${img}
+    <div class="row-body">
+      <div class="row-title">${esc(lot.normalizedTitle||lot.rawTitle||lot.title||'Unknown Item')}</div>
+      ${showRaw?`<div class="row-raw">${esc(lot.rawTitle)}</div>`:''}
+      <div class="row-meta">${bidBadge(lot)}${lot.category?`<span class="badge b-cat">${esc(lot.category)}</span>`:''}</div>
+    </div>
+    <div class="row-right">
+      <div class="row-bid">${lot.currentBid>0?'$'+lot.currentBid.toFixed(2):'—'}</div>
+      ${lot.closingTime?`<div class="row-closing">⏱️ ${esc(lot.closingTime)}</div>`:''}
+      <div class="row-src" style="color:${lot.sourceColor||'#888'}">${esc(lot.sourceName||'')}${lot.miles!=null?` · ${lot.miles}mi`:''}</div>
+    </div>
+  </a>`;
+}
+
+function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+loadData();
+setInterval(loadData,30*60*1000);
+</script>
+</body>
+</html>
